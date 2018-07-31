@@ -51,7 +51,7 @@ String.prototype.toIntArray = function() {
   var s = this + '\0\0\0'; // pad string to avoid discarding last chars
   var l = s.length - 1;
 
-  while(i < l) {
+  while(i <= l) {
     w1 = s.charCodeAt(i++);
     w2 = s.charCodeAt(i+1);
     if       (w1 < 0x0080) {
