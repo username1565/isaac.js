@@ -266,7 +266,7 @@ var isaac = (function(){
     'seed':  seed,
     'prng':  prng,
     'rand':  rand,
-	'random': random,
+    'random': random,
     'internals': internals
   };
 })(); /* declare and execute */
