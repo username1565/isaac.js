@@ -1,0 +1,12 @@
+<br><div id="generated_values"></div>
+<script>
+	//test regeneration when mouse not moving. When this moving, no generation, but seed is regenerate all this time.
+	var function_as_string = '\
+	document.getElementById("generated_values").innerHTML += (\
+		"<br>isaac.random(): "+isaac.random()\
+		+	", isaac.rand(): "+isaac.rand()\
+		+	", timeout: "+timeout\
+	)'; //function to run when mouse moving or when seed is updated by rand timeout value.
+</script>
+<script src="isaac.js">//include ISAAC CSPRNG</script>
+<script src="sha256_rand_seed_isaac.js">//include sha256 randomization</script>
