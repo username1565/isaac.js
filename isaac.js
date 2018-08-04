@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/** ----------------------------------------------------------------------
  * Copyright (c) 2012 Yves-Marie K. Rinquin
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -34,14 +34,28 @@
  * ISAAC succesfully passed TestU01
  *
  * ----------------------------------------------------------------------
- *
- * Usage:
- *   <script src="isaac.js"></script>
- *   var random_number = isaac.random();
- *
- * Output: [ 0x00000000; 0xffffffff]
- *         [-2147483648; 2147483647]
- *
+ * Output: 			[ 0x00000000; 0xffffffff]
+ * Numbers range:  	[-2147483648; 2147483647]
+ * ----------------------------------------------------------------------
+  Usage. Simple including:
+  
+    <script src="isaac.js">//include ISAAC CSPRNG</script>
+    <script>
+ 		isaac.seed(Math.random() * 0xffffffff); 	//dynamic initial seed from 0 to 0xffffffff = 4294967295 = 2^32,
+ 													//This means one integer [-2^31;(+2^31-1)] in range [-2147483648; 2147483647],
+ 													//if first bit reserved for negative numbers.
+ 
+ 		//isaac.seed('static_string_seed'); 		//or this seed, can be a string.
+ 		
+ 		var random_number = isaac.random(); 		//number, like return console.log(Math.random());
+ 		var rand_number = isaac.rand();				//whole integer in range [-2147483648; 2147483647], like return
+													//console.log(	crypto.getRandomValues( new Uint32Array(100) )	);
+ 
+ 		document.write(								//output.
+ 				' isaac.random(): ', random_number	//isaac.random(): 0.3813510288018733
+ 			+	'<br> isaac.rand(): ', rand_number	//isaac.rand(): -1978938723
+ 		);
+ 	 </script>
  */
 
 
@@ -100,7 +114,19 @@ var isaac = (function(){
       r = Array(256), // result array
       gnt = 0;        // generation counter
 
-  seed(Math.random() * 0xffffffff);
+	seed(Math.random() * 0xffffffff);								//random seed, using default Math.random(), if this was been not redefined.
+	//if this string will be commented, start image in canvas on load the page, without moving cursor - will be static,
+	//and then this changed after short timeout... You cann't save correct seed of this page in this case.
+	
+//	seed('test length');											//initial seed. This can be a string hash or string like this
+//	seed(Math.random().toString(36).replace('.', ''));				//or, like this.
+
+//	reseed after including (see isaac-test.htm source code):
+//		1.	isaac.reset();
+//		2.	isaac.seed();
+//			if seed is a string isaac.seed('string'), no need to do isaac.reset()
+//			In this case, string go to array, and after check this, reset will be doing automatically.
+
 
   /* private: 32-bit integer safe adder */
   function add(x, y) {
@@ -113,7 +139,8 @@ var isaac = (function(){
   function reset() {
     acc = brs = cnt = 0;
     for(var i = 0; i < 256; ++i)
-      m[i] = r[i] = 0;
+      //console.log('m[i]', m[i], 'r[i]', r[i]);	//in first start - this undefined both
+	  m[i] = r[i] = 0;
     gnt = 0;
   }
 
@@ -132,7 +159,9 @@ var isaac = (function(){
       s = [s];
     }
 
+	//console.log(s);
     if(s instanceof Array) {
+      //console.log('\n\n\n acc', acc, 'brs', brs, 'cnt', cnt, 'm', m, 'r', r, 'gnt', gnt);
       reset();
       for(i = 0; i < s.length; i++)
         r[i & 0xff] += (typeof(s[i]) === 'number') ? s[i] : 0;
@@ -221,17 +250,35 @@ var isaac = (function(){
     return {a: acc, b: brs, c: cnt, m: m, r: r};
   }
 
+  /* public: output*/
+  function random(){//output, like return default Math.random() function.
+    return 0.5 + this.rand() * 2.3283064365386963e-10; // 2^-32
+	//Warning!
+	//2^32 = 2.32830643653869628906e-10 (!== and ≈) 2.3283064365386963e-10
+	//so can be small and rare artifacts or strips in canvas.
+	//recommend to using isaac.rand() to get CSPRNG values.
+	//This return values, like console.log(	crypto.getRandomValues( new Uint32Array(100) )	);
+  }	
+  
   /* return class object */
   return {
     'reset': reset,
     'seed':  seed,
     'prng':  prng,
     'rand':  rand,
+	'random': random,
     'internals': internals
   };
 })(); /* declare and execute */
 
-/* public: output*/
-isaac.random = function() {
-  return 0.5 + this.rand() * 2.3283064365386963e-10; // 2^-32
-}
+( "undefined" !== ( typeof( module ) ) ) && module.exports && ( module.exports = isaac );
+
+/* public: output*/ //old code
+//isaac.random = function() {//output, like return default Math.random() function.
+//  return 0.5 + this.rand() * 2.3283064365386963e-10; // 2^-32
+	//Warning!
+	//2^32 = 2.32830643653869628906e-10 (!== and ≈) 2.3283064365386963e-10
+	//so can be small and rare artifacts or strips in canvas.
+	//recommend to using isaac.rand() to get CSPRNG values.
+	//This return values, like console.log(	crypto.getRandomValues( new Uint32Array(100) )	);
+//}
