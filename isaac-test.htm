@@ -49,7 +49,7 @@
 
 /* --- intro --- */
       writeln('--- some random values -----------------------------------------');
-      writeln('--- 1 run / seed = initial -------------------------------------');
+      writeln('--- 1 run / seed = initial (seed from Math.random() function) --');
 
       for(var i = 0; i < 30; i++) {
         write(isaac.random() + '; ');
@@ -76,7 +76,7 @@
 
 /* --- test 2 --- */
       writeln('--- test 2: randvect -------------------------------------------');
-      writeln('--- 2 runs / seed = default ------------------------------------');
+      writeln('--- 2 runs / seed = default (true). Static output... -----------');
 
       isaac.reset();
       isaac.seed(true);
@@ -92,8 +92,10 @@
 
 /* --- test 3 --- */
       var s = 'This is <i>not</i> the right mytext.'
-      writeln('--- test 3: randseed -------------------------------------------');
+      writeln('--- test 3: static seed as string ------------------------------');
       writeln('--- 10 runs / seed = \'' + s + '\' ----');
+	  writeln('--- static string with HTML tags, as seed ----------------------');
+	  
 
       isaac.reset();
       isaac.seed(s);
@@ -110,11 +112,33 @@
       writeln('----------------------------------------------------------------' + '\n');
 
 /* --- test 4 --- */
-      writeln('--- test 4: benchmark ------------------------------------------');
-      writeln('--- 100.000 runs -----------------------------------------------');
+      var len = 30;/*<--String Length ...*/for(var s = "", rem = 100000000, n = Math.random()*10*rem; s.length < len;){rem=10*rem%n; s+= (rem%10!==0)?rem.toString(36).replace(".", "").substr(0, len-s.length):"";}//document.write("<br>", 's.length: ', s.length, 's: ', s);
+      writeln('--- test 3: randseed -------------------------------------------');
+      writeln('--- 10 runs / seed = \'' + s + '\' ----------');
+	  writeln('--- dynamic seed, as base36 encoded string ---------------------');
+	  
+
+      isaac.reset();
+      isaac.seed(s);
+
+      for(var j = 0; j < 10; j++) {
+        for(var i = 0; i < 256; i++) {
+          write(isaac.rand().toHex(8));
+          if((i & 7) == 7) writeln('');
+        }
+      }
+
+      writeln('--- reference --------------------------------------------------');
+      writeln('cf. http://burtleburtle.net/bob/rand/randseed.txt');
+      writeln('----------------------------------------------------------------' + '\n');
+
+/* --- test 5 --- */
 
       function benchmark(name, func) {
-        var ite = 100000;
+        var ite = 1000000;
+      writeln('--- test 4: benchmark ------------------------------------------');
+      writeln('--- '+ite.toLocaleString('de-DE')+' runs -----------------------------------------------');
+		
         var start, elapsed;
 
         start = new Date();
