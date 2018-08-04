@@ -1,0 +1,41 @@
+<script src="isaac.js"></script>
+<canvas id='c'></canvas>
+<script>
+//isaac.reset();									//if seed is a string, no need to do reset isaac CSPRNG.
+
+//static seed
+//isaac.seed('hello.');	//just add this seed, like this.
+
+//dynamic seed
+isaac.seed((window.performance.now()*10*100000000).toString(36));	//just add this seed, like this.
+
+
+var GRID_SIZE = 256;	//width and height in blocks of canvas square
+var BLOCK_SIZE = 2;		//width and heigth for each block in pixels
+var CANVAS_SIZE = GRID_SIZE*BLOCK_SIZE;
+
+var c = document.getElementById('c').getContext('2d');
+document.getElementById('c').setAttribute('width', CANVAS_SIZE);
+document.getElementById('c').setAttribute('height', CANVAS_SIZE);
+	
+	//fill canvas by white blocks.
+	c.fillStyle = "white";
+	//c.fillStyle = "#f8ff75"; //color code
+	c.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+var count = 0;
+
+//fill canvas by blocks with another color
+c.fillStyle = "black";
+//c.fillStyle = "#8753c6"; //color code
+for (var x = 0; x < CANVAS_SIZE; x += BLOCK_SIZE) {
+    for (var y = 0; y < CANVAS_SIZE; y += BLOCK_SIZE) {
+        //if (isaac.random() < 0.5) {	//return integers like Math.random()
+        if (isaac.rand() < 0) { //using whole integers.
+            c.fillRect(x, y, BLOCK_SIZE, BLOCK_SIZE);	//fill black block in canvas.
+            count++;
+        }
+    }
+}
+console.log('counted black blocks: '+count+'; (black/all)*100% = '+(count/(GRID_SIZE*GRID_SIZE)*100).toFixed(2)+' %');
+</script>
