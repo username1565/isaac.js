@@ -1,0 +1,265 @@
+<!--
+	random picture
+	analog of this: https://www.random.org/bitmaps/?format=png&width=256&height=256&zoom=1
+-->
+<canvas id='c'></canvas>
+<div id="createPNGButton">
+    <button onclick="putImage()">Make Image fixed for saving</button>
+	
+<!-- visualization randomization-->
+	<img id="cursor" src="./spin.gif"
+	style="display: none; position: absolute; top: 50%; left: 50%"
+	title="EventListener onmousemove indication
+When seed changed, display this gif for mouse cursor with random coordinates">
+	</img>
+
+	<font title="See more info in the source code sha256_randomize_Math.Random.js">
+		Partial value of seed for modified Math.random() function:
+		<div id="partial_seed_value" style="display: inline; "
+		title="Display partial seed value."></div>
+	</font>
+	<br><input type="text" size="50" onkeyup="myFunction()" title="press any key, to save hash" placeholder="press any key to save hash">
+	<br><div id="seed_list" title="saved hashes can be used as static string seed for CSPRNG"></div>
+<!-- end visualization-->
+
+</div>
+<a nohref id="link"><img id="MyPix" title="Result PNG. This can be saved now."></img></a>
+
+<script src="isaac.js">//include ISAAC CSPRNG</script>
+<script src="sha256_rand_seed_isaac.js">//include sha256 randomization + visualization</script>
+
+<script>
+var arr_hashes = [];
+function myFunction(){
+	arr_hashes.push(seed2);
+	console.log(arr_hashes);
+	var seed_list = document.getElementById('seed_list');
+	if(seed_list!==null){
+		seed_list.innerHTML = '';
+		for(i=0;i<arr_hashes.length;i++){
+			seed_list.innerHTML += '<br>'+arr_hashes[i];
+		}
+		seed_list.innerHTML +='<br><br>';
+	}
+}
+
+//copy canvas to img tag as png - then this can be saved as image by right-click context menu.
+function putImage()
+{
+  var canvas1 = document.getElementById("c");        
+  if (canvas1.getContext) {
+     var ctx = canvas1.getContext("2d");                
+     var myImage = canvas1.toDataURL("image/png");
+	 //console.log(myImage); //display base64 link in console.log
+  }
+  var imageElement = document.getElementById("MyPix");  
+  imageElement.src = myImage;
+  imageElement.width = canvas1.width;
+  imageElement.height = canvas1.height;
+  
+  if(typeof seed2 === 'undefined'){
+	seed2 = seed;
+  }
+  
+  //add base64 encoded png to link
+  var link = document.getElementById("link");
+	link.href = myImage;
+	link.download = seed2+'.png';
+
+  imageElement.title =
+'Result PNG. This can be saved now. \n\n\
+Click to download "'+seed2+'.png"';
+}
+
+function update_div(text, add){
+  var div = document.getElementById('div');		//get element
+  if(div==null){//if div no exists, create and append this
+	var div = document.createElement('div');	//create
+	div.id = "div";								//save id
+	document.getElementById('createPNGButton').appendChild(div);	//append
+  }
+	//console.log('add', add);
+	if(typeof add !== 'undefined'){//if add=was been defined, add this as text
+		if(add===true){
+			div.innerHTML += text; return false;	//just add text
+		}
+		else if(add===false){
+			var picture_info = document.getElementById('picture_info');
+			if(picture_info!==null){picture_info.innerHTML = text;}
+			else{
+				div.innerHTML += '<font id="picture_info">'+text+'</font>'
+			}
+		}
+		else if(document.getElementById("seed")!==null){		//if not true, but seed hex check is seed element exists?
+			document.getElementById("seed").innerHTML = add;	//if yes - add seed to this element
+		}
+		else{
+			div.innerHTML = '<br>'+text+'<font id="seed">'+add+'</font><br>' + div.innerHTML; //else add this element.
+		}
+	}
+	else{//else replace new
+		div.innerHTML = text;
+	}
+}
+</script>
+
+
+
+
+<script>
+//write canvas
+// https://gist.github.com/blixt/f17b47c62508be59987b
+// http://boallen.com/random-numbers.html
+
+/*
+function Random(seed) {
+    this._seed = seed % 2147483647;
+    if (this._seed <= 0) this._seed += 2147483646;
+}
+
+Random.prototype.next = function () {
+    this._seed = (this._seed * 16807) & 0xffffffff;
+    return (this._seed - 1) | 0;
+};
+*/
+
+function gen_canvas(){
+	var BLOCK_SIZE = 1;		//block width, height
+	var GRID_SIZE = 512; 	//blocks width, height in square
+	
+	var CANVAS_SIZE = GRID_SIZE*BLOCK_SIZE;
+
+	var c = document.getElementById('c').getContext('2d');
+	document.getElementById('c').width = CANVAS_SIZE;
+	document.getElementById('c').height = CANVAS_SIZE;
+	
+	//background white color
+	
+	c.fillStyle = "white";
+	//c.fillStyle = "#f8ff75"; //color code
+	c.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+	
+	//var rand = new Random(Math.floor(Math.random() * 2147483647));
+	
+	//isaac.random() return values, like Math.random()
+	//isaac.rand() return values, like crypto.getRandomValues(new Uint32Array(1));
+	//var rand = isaac.rand(); 
+	
+	//var rand = new Random(Math.floor(Math.random() * 2147483647));
+	
+	var count = 0;
+	for (var x = 0; x < CANVAS_SIZE; x += BLOCK_SIZE) {
+		for (var y = 0; y < CANVAS_SIZE; y += BLOCK_SIZE) {
+			//if (rand.next() < 0) { //fill block by black color. 	//Old PRNG give a lines and artifacts sometimes on bitmap.
+			if (isaac.rand() < 0) { //fill block by black color.	//this is ok, but need to test.
+				c.fillStyle = "black";
+				//c.fillStyle = "#8753c6"; //color code
+				c.fillRect(x, y, BLOCK_SIZE, BLOCK_SIZE);
+				count++;
+			}
+		}
+	}
+	
+	var additional_string = '<br>Black blocks: '+count+', (black blocks)/(all blocks)*100% = '+(count/(GRID_SIZE*GRID_SIZE)*100)+'%';
+	//console.log('gencanvas_ add', add);
+	add = false;
+	update_div(additional_string, add);//, add); //add = true
+	//add = false;
+	//console.log(additional_string, add);
+}
+</script>
+
+
+	<!--<script src="./sha256_randomize_Math.Random.js"></script>-->
+
+<!-- 	if this was been added,
+	uncomment var add = true, and function_as_string addition to see seed
+-->
+
+<script>
+//default variables
+var add = false; //by default - false.
+//This means, no add "seed info" in div,
+//and do replacement in div the text, with canvas info, every time after update canvas. Only canvas info.
+//true - for display full seed, if this is exists.
+
+var function_as_string = 'gen_canvas();'; //run generate canvas by default.
+	//If this string was been defined, this called every time or when mouse moving...
+	//using standard Math.random() to generate canvas.
+
+//default timeout for generate new canvas
+var default_timeout = 5000; //milliseconds
+	
+function run_default(gen_default){
+	if(gen_default===true){
+		//by default run two EventListeners: mousemove and touchmove (for multitouch touchpads)
+		document.addEventListener('mousemove',function(event) {
+			setTimeout(function_as_string, 0);
+		});
+		document.addEventListener('touchmove',function(event) {
+			setTimeout(function_as_string, 0);
+		});
+	
+		if(typeof static_timer==='undefined'){	//if this was been undefined - define once
+			eval(function_as_string);												//run first
+			static_timer = setInterval(function_as_string, default_timeout);		//and repeat using default timeout
+		}
+	}
+	else{
+		//console.log('run_default(false) remove eventListeners and clear timeout...');
+		document.removeEventListener('mousemove',function(event) {
+			setTimeout(function_as_string, 0);
+		});
+		document.removeEventListener('touchmove',function(event) {
+			setTimeout(function_as_string, 0);
+		});
+	
+		if(typeof static_timer!=='undefined'){	//if this was been undefined - define once
+			clearInterval(static_timer);
+		}
+	}
+}
+
+function check_included(){
+	//When script is included here available two variables:
+	//dynamic value: var timeout
+	//dynamic value: var seed
+	if(typeof timeout !== 'undefined' && typeof seed !== 'undefined'){		//if both defined
+		//console.log('timeout', timeout, 'check_included_interval', check_included_interval);
+		//console.log('check_included() clear interval, and run_default(false)... ');
+		clearInterval(check_included_interval);
+		run_default(false);
+				
+		//if sha256_randomize_Math.Random.js was been included before,
+		//you can uncomment this strings, to see full actual seed.
+		
+		//seed info, then add canvas info.
+		add = seed;
+			//true - to display full seed. Else, div will be regenerated again, with canvas date only, after update canvas.
+		function_as_string = 'seed2 = seed; update_div("SHA256 hash from previous seed: ", seed);'+function_as_string;
+		//display seed if sha256_randomize_Math.Random.js included, and then - generate canvas.
+		
+			//variable seed2 need to copy the seed, by user, using input button or by saved image (this is exists in filename).
+			//This seed can be used to set hash(hex string) as static seed, and get this THIS IMAGE by generation.
+			//IF YOU SEE ARTIFACTS OR LINES, you can collect hashes and make cryptoanalysis.
+			//This can help to find any bugs in this CSPRNG (if this is are exists there),
+			//and fix this and make this better and optimized.
+
+		//This modified function will be run every time with dynamic timeout or when mouse move,
+		//using default event-listener and timeout 			->			in sha256_randomize_Math.Random.js
+		//see EventListeners funtions here, and function generate(milliseconds)
+		
+		eval(function_as_string); //run this function once at first.
+		//and do nothing...
+		//return false;
+	}
+	else{//else, using default event listaner and timeout
+		//console.log('run default again...', timeout, seed);
+		run_default(true);
+	}
+}//this function running once.
+
+//if page often refrashing, this variables can be undefined when script included.
+var check_included_interval = setInterval('check_included(); //console.log("check included");', 50); //start this with delay 50 milliseconds
+
+</script>
