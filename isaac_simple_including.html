@@ -1,0 +1,17 @@
+    <script src="isaac.js">//include ISAAC CSPRNG</script>
+    <script>
+ 		isaac.seed(Math.random() * 0xffffffff); 	//dynamic initial seed from 0 to 0xffffffff = 4294967295 = 2^32,
+ 													//This means one integer [-2^31;(+2^31-1)] in range [-2147483648; 2147483647],
+ 													//if first bit reserved for negative numbers.
+ 
+ 		//isaac.seed('static_string_seed'); 		//or this seed, can be a string.
+ 		
+ 		var random_number = isaac.random(); 		//number, like return console.log(Math.random());
+ 		var rand_number = isaac.rand();				//whole integer in range [-2147483648; 2147483647], like return
+													//console.log(	crypto.getRandomValues( new Uint32Array(100) )	);
+ 
+ 		document.write(								//output.
+ 				' isaac.random(): ', random_number	//isaac.random(): 0.3813510288018733
+ 			+	'<br> isaac.rand(): ', rand_number	//isaac.rand(): -1978938723
+ 		);
+ 	 </script>
